@@ -14,7 +14,7 @@ node {
             }
 
             stage('Executable') {
-                sh 'pyinstaller --onefile add2vals.py'
+                sh '. venv/bin/activate && pyinstaller --onefile add2vals.py'
             }
         }
     }
