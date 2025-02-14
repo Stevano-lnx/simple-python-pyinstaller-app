@@ -1,16 +1,24 @@
 node {
     stage('Build') {
-        sh 'python -m py_compile sources/add2vals.py sources/calc.py'
-        stash name: 'compiled-results', includes: 'sources/*.py*'
+        properties([
+            parameters([
+                string(name: 'IMAGE', defaultValue: 'python:3.13-slim')
+            ]),
+            pipelineTriggers([
+                pollSCM('H/2 * * * *') 
+            ])
+        ])
+
+        docker.image(params.IMAGE).inside {
+            sh 'pip install --upgrade pip'
+            sh 'pip install -r requirements.txt'
+            sh 'pyinstaller --onefile add2vals.py'
+        }
     }
-    
+
     stage('Test') {
-        sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py'
-        junit 'test-reports/results.xml'
-    }
-    
-    stage('Deliver') {
-        sh 'pyinstaller --onefile sources/add2vals.py'
-        archiveArtifacts 'dist/add2vals'
+        docker.image('python:3.11-slim').inside {
+            sh 'pytest --junitxml=pytest-report.xml'
+        }
     }
 }
