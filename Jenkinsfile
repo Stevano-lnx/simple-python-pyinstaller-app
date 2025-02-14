@@ -1,21 +1,16 @@
 node {
     stage('Build') {
-        properties([
-            pipelineTriggers([
-                pollSCM('H/2 * * * *')
-            ])
-        ])
-
-        docker.image('python:3.13-slim').inside {
-            stage('Install Dependencies') {
-                sh 'python -m venv venv'
-                sh '. venv/bin/activate && pip install --upgrade pip'
-                sh '. venv/bin/activate && pip install -r requirements.txt'
-            }
-
-            stage('Executable') {
-                sh '. venv/bin/activate && pyinstaller --onefile add2vals.py'
-            }
-        }
+        sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+        stash name: 'compiled-results', includes: 'sources/*.py*'
+    }
+    
+    stage('Test') {
+        sh 'py.test --junit-xml test-reports/results.xml sources/test_calc.py'
+        junit 'test-reports/results.xml'
+    }
+    
+    stage('Deliver') {
+        sh 'pyinstaller --onefile sources/add2vals.py'
+        archiveArtifacts 'dist/add2vals'
     }
 }
