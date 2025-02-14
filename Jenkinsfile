@@ -8,8 +8,9 @@ node {
 
         docker.image('python:3.13-slim').inside {
             stage('Install Dependencies') {
-                sh 'pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
+                sh 'python -m venv venv'
+                sh '. venv/bin/activate && pip install --upgrade pip'
+                sh '. venv/bin/activate && pip install -r requirements.txt'
             }
 
             stage('Executable') {
