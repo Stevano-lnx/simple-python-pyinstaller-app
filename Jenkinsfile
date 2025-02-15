@@ -1,24 +1,21 @@
 node {
     stage('Build') {
-        properties([
-            parameters([
-                string(name: 'IMAGE', defaultValue: 'python:3.13-slim')
-            ]),
-            pipelineTriggers([
-                pollSCM('H/2 * * * *') 
-            ])
-        ])
-
-        docker.image(params.IMAGE).inside {
-            sh 'pip install --upgrade pip'
-            sh 'pip install -r requirements.txt'
-            sh 'pyinstaller --onefile add2vals.py'
+        docker.image('python:2-alpine').inside {
+            sh 'python -m py_compile sources/add2vals.py sources/calc.py'
         }
     }
 
     stage('Test') {
-        docker.image('python:3.11-slim').inside {
-            sh 'pytest --junitxml=pytest-report.xml'
+        docker.image('qnib/pytest').inside {
+            sh 'py.test --verbose --junit-xml test-reports/results.xml sources/test_calc.py'
         }
+        junit 'test-reports/results.xml'
+    }
+
+    stage('Deliver') {
+        docker.image('cdrx/pyinstaller-linux:python2').inside {
+            sh 'pyinstaller --onefile sources/add2vals.py'
+        }
+        archiveArtifacts 'dist/add2vals'
     }
 }
