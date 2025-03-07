@@ -31,7 +31,7 @@ node {
     }
     
     stage('Deploy') {
-        def appContainer = docker.run("python:2-alpine", "sleep 60", "-d")
+        def appContainer = docker.image('python:2-alpine').run('-d', 'sleep 60')
         sleep 60
         sh "docker stop ${appContainer.id}"
     }
