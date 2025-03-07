@@ -15,4 +15,24 @@ node {
         }
         junit 'test-reports/results.xml'
     }
+    
+    stage('Manual Approval') {
+        def userInput = input(
+            message: 'Lanjutkan ke tahap Deploy?',
+            parameters: [choice(choices: 'Proceed\nAbort', description: 'Pilih aksi')]
+        )
+        
+        if (userInput == 'Abort') {
+            echo 'Menghentikan eksekusi pipeline'
+            return
+        }
+        
+        echo 'Melanjutkan eksekusi pipeline ke tahap Deploy'
+    }
+    
+    stage('Deploy') {
+        def appContainer = docker.run("python:2-alpine", "sleep 60", "-d")
+        sleep 60
+        sh "docker stop ${appContainer.id}"
+    }
 }
