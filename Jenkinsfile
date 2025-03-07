@@ -19,7 +19,7 @@ node {
     stage('Manual Approval') {
         def userInput = input(
             message: 'Lanjutkan ke tahap Deploy?',
-            parameters: [choice(choices: 'Proceed,Abort', description: 'Pilih aksi')]
+            parameters: [choice(choices: [Proceed,Abort], description: 'Pilih aksi')]
         )
         
         if (userInput == 'Abort') {
